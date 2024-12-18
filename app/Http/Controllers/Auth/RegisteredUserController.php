@@ -38,7 +38,7 @@ class RegisteredUserController extends Controller
         ]);
 
         // Default role ID (e.g., 3 = Viewer/User in your system)
-        $defaultRoleId = 1;
+        $defaultRoleId = 3;
 
         // Create the new user
         $user = User::create([
