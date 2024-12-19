@@ -22,7 +22,7 @@ class roles extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'role_user', // Column for role name (e.g., Admin, Chef, User)
+        'role_user', // Column for role name (e.g., Admin, Staff, User)
     ];
 
     /**

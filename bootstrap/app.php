@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Middleware\AdminMiddleware;
-use App\Http\Middleware\ChefMiddleware;
+use App\Http\Middleware\StaffMiddleware;
 use App\Http\Middleware\SetDBConnection;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -23,7 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'setDB' => SetDBConnection::class,
             'admin' => AdminMiddleware::class,
-            'chef' => ChefMiddleware::class,
+            'staff' => StaffMiddleware::class,
             
         ]);
     })

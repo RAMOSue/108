@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminController;
-use App\Http\Controllers\ChefController;
+use App\Http\Controllers\StaffController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
@@ -27,26 +27,28 @@ Route::middleware(['auth', 'setDB'])->group(function () {
 
     Route::get('/user', [AdminController::class, 'users'])->name('user');
 
-    // Admin routes 
-    Route::middleware('admin')->group(function () {
+     // Admin routes 
+     Route::get('/user', [AdminController::class, 'users'])->name('user');
+        Route::middleware(['auth', 'admin'])->group(function () {
         Route::get('/admin', [AdminController::class, 'dashboard'])->name('admin');
         Route::delete('/admin/users/{user}', [AdminController::class, 'deleteUser'])->name('admin.deleteUser');
-        Route::put('/admin/users/{user}/update-role', [AdminController::class, 'updateUserRole'])->name('admin.updateUserRole');
-        Route::post('/admin', [AdminController::class, 'addUser'])->name('admin.addUser');
-        Route::delete('/admin/recipes/{id}', [AdminController::class, 'deleteRecipe'])->name('admin.deleteRecipe');
-        Route::post('/admin/refresh-stats', [AdminController::class, 'refreshStatistics'])->name('admin.refreshStats'); // Refresh stats
+        Route::post('/admin/users/{id}', [AdminController::class, 'updateRole'])->name('admin.updateRole');
+        Route::post('/admin/users', [AdminController::class, 'addUser'])->name('admin.addUser');
+        Route::delete('/admin/tribes/{id}', [AdminController::class, 'deleteTribe'])->name('admin.deleteTribe');
+        Route::post('/admin/refresh-stats', [AdminController::class, 'refreshStatistics'])->name('admin.refreshActivityLogs');
+        Route::get('/admin/activity-logs', [AdminController::class, 'getActivityLogs'])->name('admin.activityLogs');
     });
 
-    // Chef routes
-    Route::middleware('chef')->group(function () {
-        Route::get('/chef', [ChefController::class, 'dashboard'])->name('chef');  // Chef profile info
-        Route::get('/chef/dashboard', [ChefController::class, 'dashboard'])->name('chef.dashboard');
-        Route::get('/chef/dashboard/stats', [ChefController::class, 'getDashboardStats'])->name('chef.getDashboardStats');
-        Route::post('/chef/recipes', [ChefController::class, 'storeRecipe'])->name('chef.storeRecipe');
-        Route::put('/chef/recipes/{recipe}', [ChefController::class, 'updateRecipe'])->name('chef.updateRecipe');
-        Route::get('/chef/recipes/{recipe}/edit', [ChefController::class, 'editRecipe'])->name('chef.editRecipe');
-        Route::delete('/chef/recipes/{recipe}', [ChefController::class, 'deleteRecipe'])->name('chef.deleteRecipe');
+     // staff routes
+     Route::middleware('staff')->group(function () {
+        Route::get('/staff', [StaffController::class, 'dashboard'])->name('staff');  // staff profile info
+        Route::get('/staff/dashboard/stats', [StaffController::class, 'getDashboardStats'])->name('staff.getDashboardStats');
+        Route::post('/staff/tribes', [StaffController::class, 'storeTribe'])->name('staff.storeTribe');
+        Route::put('/staff/tribes/{tribes}', [StaffController::class, 'updateTribe'])->name('staff.updateTribe');
+        Route::get('/staff/tribes/{tribes}/edit', [StaffController::class, 'editTribe'])->name('staff.editTribe');
+        Route::delete('/staff/tribes/{tribes}', [StaffController::class, 'deleteTribe'])->name('staff.deleteTribe');
     });
+
 
     //User routes
     Route::get('/user', [UserController::class, 'users'])->name('user');

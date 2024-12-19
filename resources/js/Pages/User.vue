@@ -1,5 +1,5 @@
 <template>
-  <Head title="Browse Recipes" />
+  <Head title="Browse Tribes" />
   <AuthenticatedLayout>
     <div class="flex h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <!-- Sidebar -->
@@ -22,7 +22,7 @@
       <!-- Main Content -->
       <main class="flex-1 overflow-x-hidden overflow-y-auto">
         <div class="container mx-auto px-6 py-8">
-          <h1 class="text-4xl font-bold text-gray-800 mb-8">Discover Delicious Recipes</h1>
+          <h1 class="text-4xl font-bold text-gray-800 mb-8">Philippine Cultural Groups</h1>
           
           <!-- Search and Filter -->
           <div class="mb-8 bg-white p-6 rounded-xl shadow-md">
@@ -31,16 +31,16 @@
                 <input 
                   v-model="searchQuery" 
                   type="text" 
-                  placeholder="Search recipes" 
+                  placeholder="Search tribes" 
                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-                  @input="searchRecipes"
+                  @input="searchTribess"
                 >
               </div>
               <div class="md:w-48">
                 <select 
                   v-model="selectedCategory"
                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-                  @change="filterRecipes"
+                  @change="filterTribes"
                 >
                   <option value="">All Categories</option>
                   <option v-for="category in categories" :key="category.id" :value="category.id">
@@ -51,27 +51,27 @@
             </div>
           </div>
 
-          <!-- Recipe Grid -->
-          <div v-if="filteredRecipes.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div v-for="recipe in filteredRecipes" :key="recipe.id" 
+          <!-- Tribe Grid -->
+          <div v-if="filteredTribes.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div v-for="tribe in filteredTribes" :key="tribe.id" 
                  class="bg-white overflow-hidden shadow-lg rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl">
-              <img :src="recipe.url_image || '/placeholder.svg'" :alt="recipe.recipe_name" class="w-full h-48 object-cover">
+              <img :src="tribe.url_image || '/placeholder.svg'" :alt="tribe.tribe_name" class="w-full h-48 object-cover">
               <div class="p-6">
-                <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ recipe.recipe_name }}</h3>
-                <p :style="{ color: getCategoryColor(recipe.category_id).text, backgroundColor: getCategoryColor(recipe.category_id).bg }" class="text-sm mb-4 font-medium inline-block px-2 py-1 rounded-full">
-                  {{ getCategoryName(recipe.category_id) }}
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ tribe.tribe_name }}</h3>
+                <p :style="{ color: getCategoryColor(tribe.category_id).text, backgroundColor: getCategoryColor(tribe.category_id).bg }" class="text-sm mb-4 font-medium inline-block px-2 py-1 rounded-full">
+                  {{ getCategoryName(tribe.category_id) }}
                 </p>
                 <div class="flex items-center justify-between text-gray-500 mb-4">
                   <span class="flex items-center">
                     <ClockIcon class="w-4 h-4 mr-1" />
-                    {{ recipe.prep_time }}
+                    {{ tribe.population }}
                   </span>
                   <span class="flex items-center">
                     <UsersIcon class="w-4 h-4 mr-1" />
-                    {{ recipe.servings }} servings
+                    {{ tribe.region }} region
                   </span>
                 </div>
-                <button @click="viewRecipeDetails(recipe)" 
+                <button @click="viewTribeDetails(tribe)" 
                         class="w-full bg-indigo-600 text-white px-4 py-2 rounded-md transition duration-300 ease-in-out hover:bg-indigo-700 transform hover:-translate-y-1">
                   View more details
                 </button>
@@ -80,14 +80,14 @@
           </div>
           <div v-else class="text-center py-12 bg-white rounded-xl shadow-md">
             <BookOpenIcon class="h-24 w-24 text-indigo-400 mx-auto mb-4" />
-            <p class="text-gray-500 text-lg">No recipes found. Try adjusting your search or filter.</p>
+            <p class="text-gray-500 text-lg">No tribes found. Try adjusting your search or filter.</p>
           </div>
         </div>
       </main>
 
-      <!-- Recipe Details Modal -->
-      <TransitionRoot appear :show="!!selectedRecipe" as="template">
-        <Dialog as="div" @close="closeRecipeDetails" class="relative z-50">
+      <!-- Tribes Details Modal -->
+      <TransitionRoot appear :show="!!selectedTribe" as="template">
+        <Dialog as="div" @close="closeTribeDetails" class="relative z-50">
           <TransitionChild
             as="template"
             enter="duration-300 ease-out"
@@ -106,57 +106,57 @@
                 <DialogPanel class="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
                   <div class="flex justify-between items-center mb-4">
                     <DialogTitle as="h2" class="text-3xl font-bold text-gray-800">
-                      {{ selectedRecipe?.recipe_name }}
+                      {{ selectedTribe?.tribe_name }}
                     </DialogTitle>
-                    <button @click="closeRecipeDetails" class="text-gray-500 hover:text-gray-700">
+                    <button @click="closeTribeDetails" class="text-gray-500 hover:text-gray-700">
                       <XMarkIcon class="h-6 w-6" />
                     </button>
                   </div>
-                  <img :src="selectedRecipe?.url_image || '/placeholder.svg'" :alt="selectedRecipe?.recipe_name" class="w-full h-64 object-cover rounded-xl mb-4">
+                  <img :src="selectedTribe?.url_image || '/placeholder.svg'" :alt="selectedTribe?.tribe_name" class="w-full h-64 object-cover rounded-xl mb-4">
                   <div class="flex justify-between items-center text-gray-600 mb-4">
                     <span class="flex items-center">
                       <ClockIcon class="w-5 h-5 mr-2" />
-                      {{ selectedRecipe?.prep_time }}
+                      {{ selectedTribe?.population }}
                     </span>
                     <span class="flex items-center">
                       <UsersIcon class="w-5 h-5 mr-2" />
-                      {{ selectedRecipe?.servings }} servings
+                      {{ selectedTribe?.region }} region
                     </span>
-                    <span :style="{ color: getCategoryColor(selectedRecipe?.category_id).text, backgroundColor: getCategoryColor(selectedRecipe?.category_id).bg }" class="px-3 py-1 rounded-full text-sm font-medium">
-                      {{ getCategoryName(selectedRecipe?.category_id) }}
+                    <span :style="{ color: getCategoryColor(selectedTribe?.category_id).text, backgroundColor: getCategoryColor(selectedTribe?.category_id).bg }" class="px-3 py-1 rounded-full text-sm font-medium">
+                      {{ getCategoryName(selectedTribe?.category_id) }}
                     </span>
                   </div>
                   <div class="mb-4 p-4 bg-gray-100 rounded-lg">
-                    <h3 class="text-lg font-semibold mb-2">Chef</h3>
+                    <h3 class="text-lg font-semibold mb-2">Staff</h3>
                     <div class="flex items-center">
                       <img 
-                        :src="`https://ui-avatars.com/api/?name=${getUser(selectedRecipe?.user_id)}&background=random`" 
-                        :alt="getUser(selectedRecipe?.user_id)"
+                        :src="`https://ui-avatars.com/api/?name=${getUser(selectedTribe?.user_id)}&background=random`" 
+                        :alt="getUser(selectedTribe?.user_id)"
                         class="w-10 h-10 rounded-full mr-3"
                       />
                       <div>
-                        <p class="font-medium text-gray-800">{{ getUser(selectedRecipe?.user_id) }}</p>
-                        <p class="text-sm text-gray-600">Created on {{ formatDate(selectedRecipe?.created_at) }}</p>
+                        <p class="font-medium text-gray-800">{{ getUser(selectedTribe?.user_id) }}</p>
+                        <p class="text-sm text-gray-600">Created on {{ formatDate(selectedTribe?.created_at) }}</p>
                       </div>
                     </div>
                   </div>
                   <div class="space-y-4 max-h-[calc(100vh-24rem)] overflow-y-auto pr-4 custom-scrollbar">
                     <div>
                       <h3 class="text-xl font-semibold mb-2">Description</h3>
-                      <p class="text-gray-700">{{ selectedRecipe?.description }}</p>
+                      <p class="text-gray-700">{{ selectedTribe?.description }}</p>
                     </div>
                     <div>
-                      <h3 class="text-xl font-semibold mb-2">Ingredients</h3>
+                      <h3 class="text-xl font-semibold mb-2">Language</h3>
                       <ul class="list-disc list-inside text-gray-700">
-                        <li v-for="ingredient in selectedRecipe?.ingredients.split('\n')" :key="ingredient" class="mb-2 break-words">
-                          {{ ingredient.trim() }}
+                        <li v-for="language in selectedTribe?.language.split('\n')" :key="language" class="mb-2 break-words">
+                          {{ language.trim() }}
                         </li>
                       </ul>
                     </div>
                     <div>
-                      <h3 class="text-xl font-semibold mb-2">Procedure</h3>
+                      <h3 class="text-xl font-semibold mb-2">Culture</h3>
                       <ol class="list-decimal list-inside text-gray-700">
-                        <li v-for="(step, index) in selectedRecipe?.procedure.split('\n')" :key="index" class="mb-2 break-words">
+                        <li v-for="(step, index) in selectedTribe?.cultural_practices.split('\n')" :key="index" class="mb-2 break-words">
                           {{ step.trim() }}
                         </li>
                       </ol>
@@ -192,7 +192,7 @@ import {
 const page = usePage();
 
 const props = defineProps({
-  recipes: {
+  tribes: {
     type: Array,
     default: () => []
   },
@@ -217,17 +217,17 @@ const getUser = (user_id) => {
 
 // Reactive data
 const roles = ref(props.roles);
-const recipes = ref(props.recipes);
+const tribes = ref(props.tribes);
 const categories = ref(props.categories);
 const searchQuery = ref('');
 const selectedCategory = ref('');
-const selectedRecipe = ref(null);
+const selectedTribe = ref(null);
 
 // Computed properties
-const filteredRecipes = computed(() => {
-  return recipes.value.filter(recipe => {
-    const matchesCategory = selectedCategory.value === '' || recipe.category_id === selectedCategory.value;
-    const matchesSearch = recipe.recipe_name.toLowerCase().includes(searchQuery.value.toLowerCase());
+const filteredTribes = computed(() => {
+  return tribes.value.filter(tribe => {
+    const matchesCategory = selectedCategory.value === '' || tribe.category_id === selectedCategory.value;
+    const matchesSearch = tribe.tribe_name.toLowerCase().includes(searchQuery.value.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 });
@@ -242,7 +242,7 @@ const avatarBorderColor = computed(() => {
   switch (userRole.value) {
     case 'Admin':
       return 'border-4 border-green-500';
-    case 'Chef':
+    case 'Staff':
       return 'border-4 border-blue-500';
     case 'User':
       return 'border-4 border-yellow-500';
@@ -255,7 +255,7 @@ const roleBadgeColor = computed(() => {
   switch (userRole.value) {
     case 'Admin':
       return 'bg-green-100 text-green-800';
-    case 'Chef':
+    case 'Staff':
       return 'bg-blue-100 text-blue-800';
     case 'User':
       return 'bg-yellow-100 text-yellow-800';
@@ -289,21 +289,21 @@ const getCategoryColor = (categoryId) => {
   return { text: '#000000', bg: '#FFFFFF' };
 };
 
-const searchRecipes = () => {
+const searchTribes = () => {
   // In a real application, you might want to debounce this function
   console.log('Searching:', searchQuery.value);
 };
 
-const filterRecipes = () => {
+const filterTribes = () => {
   console.log('Filtering by category:', selectedCategory.value);
 };
 
-const viewRecipeDetails = (recipe) => {
-  selectedRecipe.value = recipe;
+const viewTribeDetails = (tribe) => {
+  selectedTribe.value = tribe;
 };
 
-const closeRecipeDetails = () => {
-  selectedRecipe.value = null;
+const closeTribeDetails = () => {
+  selectedTribe.value = null;
 };
 
 const formatDate = (dateString) => {
@@ -313,20 +313,20 @@ const formatDate = (dateString) => {
 
 // Lifecycle hooks
 onMounted(() => {
-  // Fetch recipes if not provided as props
-  if (recipes.value.length === 0) {
-    fetchRecipes();
+  // Fetch tribes if not provided as props
+  if (tribes.value.length === 0) {
+    fetchTribes();
   }
 });
 
-const fetchRecipes = async () => {
+const fetchTribes = async () => {
   try {
-    const response = await fetch(route('user.getRecipes'));
+    const response = await fetch(route('user.getTribes'));
     const data = await response.json();
-    recipes.value = data.recipes;
+    tribes.value = data.tribes;
     categories.value = data.categories;
   } catch (error) {
-    console.error('Error fetching recipes:', error);
+    console.error('Error fetching tribes:', error);
   }
 };
 </script>

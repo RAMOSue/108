@@ -5,7 +5,7 @@
       <!-- Main Content -->
       <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div class="bg-white p-8 rounded-2xl shadow-lg">
-          <h2 class="text-3xl sm:text-4xl font-bold text-gray-800 mb-6">Welcome to Your Recipe Book Dashboard!</h2>
+          <h2 class="text-3xl sm:text-4xl font-bold text-gray-800 mb-6">Welcome to Your Tribo Dashboard!</h2>
           <p class="text-xl text-gray-600 mb-8">Ready to {{ getWelcomeMessage(getRole($page.props.auth.user.role_id)) }}?</p>
           
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
@@ -62,7 +62,7 @@
 import { computed } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { 
-  ChefHat, Users, Book, Activity, Utensils, Star, TrendingUp, 
+  StaffHat, Users, Book, Activity, Utensils, Star, TrendingUp, 
   ClipboardList, UserPlus, FileText, Eye, Search, Heart, 
   Award, ThumbsUp, MessageCircle, Bookmark, Coffee, Clock
 } from 'lucide-vue-next';
@@ -84,7 +84,7 @@ const getRole = (role_id) => {
   if (role_id === 1) {
     return "Admin";
   } else if (role_id === 2) {
-    return "Chef";
+    return "Staff";
   } else if (role_id === 3) {
     return "User";
   } else {
@@ -94,25 +94,25 @@ const getRole = (role_id) => {
 
 const getWelcomeMessage = (roleId) => {
   const messages = {
-    1: "manage the Recipe Book platform", // Admin
-    2: "create culinary masterpieces",    // Chef
-    3: "explore delicious recipes",       // User
+    1: "manage the Tribes platform", // Admin
+    2: "create culture masterpieces",    // Staff
+    3: "explore delicious tribes",       // User
   };
-  return messages[roleId] || "use the Recipe Book platform"; // Default message
+  return messages[roleId] || "use the Tribe Book platform"; // Default message
 };
 
 const getRoleFeatures = (roleId) => {
   const features = {
     1: [
       { icon: Users, title: "User Management", description: "Oversee all platform users" },
-      { icon: Book, title: "Recipe Oversight", description: "Curate and manage recipes" },
+      { icon: Book, title: "Tribe Oversight", description: "Curate and manage tribes" },
       { icon: Activity, title: "Platform Insights", description: "Monitor site activity" },
     ],
     2: [
-      { icon: Utensils, title: "Recipe Creation", description: "Craft your signature dishes" },
+      { icon: Utensils, title: "Tribe Creation", description: "Craft your signature dishes" },
     ],
     3: [
-      { icon: Search, title: "Recipe Discovery", description: "Find your next favorite meal" },
+      { icon: Search, title: "Tribe Discovery", description: "Find your next favorite meal" },
     ]
   };
   return features[roleId] || [];
@@ -121,7 +121,7 @@ const getRoleFeatures = (roleId) => {
 const getDashboardRoute = (roleId) => {
   const routes = {
     1: route('admin'),
-    2: route('chef'),
+    2: route('staff'),
     3: route('user') // Ensure this is the correct route
   };
   return routes[roleId] || route('dashboard');
@@ -130,7 +130,7 @@ const getDashboardRoute = (roleId) => {
 const getDashboardIcon = (roleId) => {
   const icons = {
     1: ClipboardList,
-    2: ChefHat,
+    2: StaffHat,
     3: Book
   };
   return icons[roleId] || Activity;
@@ -139,8 +139,8 @@ const getDashboardIcon = (roleId) => {
 const getDashboardButtonText = (roleId) => {
   const texts = {
     1: 'Go to Admin Dashboard',
-    2: 'Manage Your Recipes',
-    3: 'Explore Recipes'
+    2: 'Manage Your Tribes',
+    3: 'Explore Tribes'
   };
   return texts[roleId] || 'Go to Dashboard';
 };
@@ -149,11 +149,11 @@ const getQuickStats = (roleId) => {
   const stats = {
     1: [
       { title: 'Total Users', value: '5,231',  icon: Users, },
-      { title: 'Total Chefs', value: '142',  icon: ChefHat, },
-      { title: 'Total Recipes', value: '1,205',  icon: Book, },
+      { title: 'Total Staffs', value: '142',  icon: StaffHat, },
+      { title: 'Total Tribes', value: '1,205',  icon: Book, },
     ],
     2: [
-      { title: 'Your Recipes', value: '28',  icon: Book, trendIcon: TrendingUp },
+      { title: 'Your Tribes', value: '28',  icon: Book, trendIcon: TrendingUp },
       { title: 'Total Views', value: '15.2K',  icon: Eye, trendIcon: TrendingUp },
     ],
   };

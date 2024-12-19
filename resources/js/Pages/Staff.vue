@@ -1,5 +1,5 @@
 <template>
-  <Head title="Chef Management" />
+  <Head title="Staff Management" />
   <AuthenticatedLayout>
     <div class="flex h-screen bg-gray-100">
       <!-- Sidebar -->
@@ -24,7 +24,7 @@
       <!-- Main Content -->
       <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100">
         <div class="container mx-auto px-6 py-8">
-          <h1 class="text-4xl font-bold text-gray-800 mb-8">Chef Dashboard</h1>
+          <h1 class="text-4xl font-bold text-gray-800 mb-8">Staff Dashboard</h1>
           
           <!-- Dashboard Stats -->
           <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
@@ -38,48 +38,48 @@
             </div>
           </section>
           
-          <!-- Recipe Management -->
+          <!-- Tribe Management -->
           <section>
             <div class="flex justify-between items-center mb-6">
-              <h2 class="text-3xl font-bold text-gray-800">Recipe Collection</h2>
-              <button @click="openRecipeModal()" 
+              <h2 class="text-3xl font-bold text-gray-800">Philippine Tribe</h2>
+              <button @click="openTribeModal()" 
                       class="bg-blue-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-700 transition-colors duration-300 flex items-center shadow-lg">
                 <PlusIcon class="h-5 w-5 mr-2" />
-                Add New Recipe
+                Add New Tribe
               </button>
             </div>
             
-            <!-- Recipe Grid -->
-            <div v-if="recipes.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div v-for="recipe in recipes" :key="recipe.id" 
+            <!-- Tribe Grid -->
+            <div v-if="tribes.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div v-for="tribe in tribes" :key="tribe.id" 
                    class="bg-white overflow-hidden shadow-lg rounded-xl transition-all duration-300 transform hover:scale-105">
-                <img :src="recipe.url_image || '/placeholder.svg'" :alt="recipe.recipe_name" class="w-full h-48 object-cover">
+                <img :src="tribe.url_image || '/placeholder.svg'" :alt="tribe.tribe_name" class="w-full h-48 object-cover">
                 <div class="p-6">
-                  <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ recipe.recipe_name }}</h3>
-                  <p :style="{ color: getCategoryColor(recipe.category_id).text, backgroundColor: getCategoryColor(recipe.category_id).bg }" class="text-sm mb-4 font-medium inline-block px-2 py-1 rounded-full">
-                    {{ getCategoryName(recipe.category_id) }}
+                  <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ tribe.tribe_name }}</h3>
+                  <p :style="{ color: getCategoryColor(tribe.category_id).text, backgroundColor: getCategoryColor(tribe.category_id).bg }" class="text-sm mb-4 font-medium inline-block px-2 py-1 rounded-full">
+                    {{ getCategoryName(tribe.category_id) }}
                   </p>
                   <div class="flex items-center justify-between text-gray-500 mb-4">
                     <span class="flex items-center">
-                      <ClockIcon class="w-4 h-4 mr-1" />
-                      {{ recipe.prep_time }}
+                      <UsersIcon class="w-4 h-4 mr-1" />
+                      {{ tribe.population }}
                     </span>
                     <span class="flex items-center">
-                      <UsersIcon class="w-4 h-4 mr-1" />
-                      {{ recipe.servings }} servings
+                      <MapPinIcon class="w-4 h-4 mr-1" />
+                      {{ tribe.region }} region
                     </span>
                   </div>
                   <div class="flex justify-between items-center">
-                    <button @click="viewRecipeDetails(recipe)" 
+                    <button @click="viewTribeDetails(tribe)" 
                             class="bg-blue-600 text-white px-4 py-2 rounded-md transition duration-300 ease-in-out hover:bg-blue-700">
                       View more details
                     </button>
                     <div class="flex space-x-2">
-                      <button @click="openRecipeModal(recipe)"
+                      <button @click="openTribeModal(tribe)"
                               class="bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 transition-colors duration-300">
                         <PencilIcon class="h-5 w-5" />
                       </button>
-                      <button @click="confirmDeleteRecipe(recipe.id)"
+                      <button @click="confirmDeleteTribe(tribe.id)"
                               class="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors duration-300">
                         <TrashIcon class="h-5 w-5" />
                       </button>
@@ -89,16 +89,16 @@
               </div>
             </div>
             <div v-else class="text-center py-12">
-              <BookOpenIcon class="h-24 w-24 text-gray-400 mx-auto mb-4" />
-              <p class="text-gray-500 text-lg">No recipes found. Add a new recipe to get started!</p>
+              <FlagIcon class="h-24 w-24 text-gray-400 mx-auto mb-4" />
+              <p class="text-gray-500 text-lg">No tribes found. Add a new tribes to get started!</p>
             </div>
           </section>
         </div>
       </main>
 
-      <!-- Add/Edit Recipe Modal -->
-      <TransitionRoot appear :show="showRecipeModal" as="template">
-        <Dialog as="div" @close="closeRecipeModal" class="relative z-50">
+      <!-- Add/Edit Tribe Modal -->
+      <TransitionRoot appear :show="showTribeModal" as="template">
+        <Dialog as="div" @close="closeTribeModal" class="relative z-50">
           <div class="fixed inset-0 overflow-y-auto">
             <div class="flex min-h-full items-center justify-center p-4 text-center">
               <TransitionChild 
@@ -112,80 +112,80 @@
               >
                 <DialogPanel class="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
                   <DialogTitle as="h3" class="text-lg font-medium leading-6 text-gray-900 mb-4">
-                    {{ editingRecipe ? 'Edit Recipe' : 'Create New Recipe' }}
+                    {{ editingTribe ? 'Edit Tribe' : 'Create New Tribe' }}
                   </DialogTitle>
-                  <form @submit.prevent="confirmSubmitRecipe" class="space-y-4">
+                  <form @submit.prevent="confirmSubmitTribe" class="space-y-4">
                     <div>
-                      <label for="recipe_name" class="block text-sm font-medium text-gray-700">Recipe Name</label>
+                      <label for="tribe_name" class="block text-sm font-medium text-gray-700">Tribe Name</label>
                       <input
                         type="text"
-                        id="recipe_name"
-                        v-model="recipeForm.recipe_name"
+                        id="tribe_name"
+                        v-model="tribeForm.tribe_name"
                         required
                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                        placeholder="Enter recipe name"
+                        placeholder="Enter tribe name"
                       />
                     </div>
                     <div>
-                      <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+                      <label for="description" class="block text-sm font-medium text-gray-700">Background</label>
                       <textarea
                         id="description"
-                        v-model="recipeForm.description"
+                        v-model="tribeForm.description"
                         required
                         rows="3"
                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                        placeholder="Enter recipe description"
+                        placeholder="Enter a detailed description of the tribe"
                       ></textarea>
                     </div>
                     <div>
-                      <label for="ingredients" class="block text-sm font-medium text-gray-700">Ingredients</label>
+                      <label for="language" class="block text-sm font-medium text-gray-700">Language</label>
                       <textarea
-                        id="ingredients"
-                        v-model="recipeForm.ingredients"
+                        id="language"
+                        v-model="tribeForm.language"
                         required
                         rows="4"
                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                        placeholder="Enter recipe ingredients (one per line)"
+                        placeholder="Tribe Language (e.g., Tausug)"
                       ></textarea>
                     </div>
                     <div>
-                      <label for="procedure" class="block text-sm font-medium text-gray-700">Procedure</label>
+                      <label for="cultural_practices" class="block text-sm font-medium text-gray-700">Cultural Practices</label>
                       <textarea
-                        id="procedure"
-                        v-model="recipeForm.procedure"
+                        id="cultural_practices"
+                        v-model="tribeForm.cultural_practices"
                         required
                         rows="4"
                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                        placeholder="Enter recipe procedure (step by step)"
+                        placeholder="Enter the Tribe's Cultural Practices"
                       ></textarea>
                     </div>
                     <div>
-                      <label for="prep_time" class="block text-sm font-medium text-gray-700">Preparation Time</label>
+                      <label for="population" class="block text-sm font-medium text-gray-700">Population</label>
                       <input
                         type="text"
-                        id="prep_time"
-                        v-model="recipeForm.prep_time"
+                        id="population"
+                        v-model="tribeForm.population"
                         required
                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                        placeholder="E.g. 30 minutes"
+                        placeholder="Population (Estimated)"
                       />
                     </div>
                     <div>
-                      <label for="servings" class="block text-sm font-medium text-gray-700">Servings</label>
+                      <label for="region" class="block text-sm font-medium text-gray-700">Region</label>
                       <input
-                        type="number"
-                        id="servings"
-                        v-model="recipeForm.servings"
+                        type="text"
+                        id="region"
+                        v-model="tribeForm.region"
                         required
                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                        placeholder="Enter serving size"
+                        placeholder="e.g. Caraga"
                       />
                     </div>
                     <div>
                       <label for="category" class="block text-sm font-medium text-gray-700">Category</label>
                       <select
                         id="category"
-                        v-model="recipeForm.category_id"
+                        v-model="tribeForm.category_id"
                         required
                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
                       >
@@ -198,7 +198,7 @@
                     <div class="mt-6 flex justify-end space-x-3">
                       <button 
                         type="button" 
-                        @click="closeRecipeModal" 
+                        @click="closeTribeModal" 
                         class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
                       >
                         Cancel
@@ -207,7 +207,7 @@
                         type="submit" 
                         class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                       >
-                        {{ editingRecipe ? 'Edit Recipe' : 'Add Recipe' }}
+                        {{ editingTribe? 'Edit Tribe' : 'Add Tribe' }}
                       </button>
                     </div>
                   </form>
@@ -218,53 +218,53 @@
         </Dialog>
       </TransitionRoot>
 
-      <!-- Recipe Details Modal -->
-      <TransitionRoot appear :show="!!selectedRecipe" as="template">
-        <Dialog as="div" @close="closeRecipeDetails" class="relative z-50">
+      <!-- Tribe Details Modal -->
+      <TransitionRoot appear :show="!!selectedTribe" as="template">
+        <Dialog as="div" @close="closeTribeDetails" class="relative z-50">
           <div class="fixed inset-0 overflow-y-auto">
             <div class="flex min-h-full items-center justify-center p-4 text-center">
               <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95" enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
                 <DialogPanel class="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
                   <div class="flex justify-between items-center mb-4">
                     <DialogTitle as="h2" class="text-3xl font-bold text-gray-800">
-                      {{ selectedRecipe?.recipe_name }}
+                      {{ selectedTribe?.tribe_name }}
                     </DialogTitle>
-                    <button @click="closeRecipeDetails" class="text-gray-500 hover:text-gray-700">
+                    <button @click="closeTribeDetails" class="text-gray-500 hover:text-gray-700">
                       <XIcon class="h-6 w-6" />
                     </button>
                   </div>
-                  <img :src="selectedRecipe?.url_image || '/placeholder.svg'" :alt="selectedRecipe?.recipe_name" class="w-full h-64 object-cover rounded-xl mb-4">
+                  <img :src="selectedTribe?.url_image || '/placeholder.svg'" :alt="selectedTribe?.tribe_name" class="w-full h-64 object-cover rounded-xl mb-4">
                   <div class="flex justify-between items-center text-gray-600 mb-4">
                     <span class="flex items-center">
-                      <ClockIcon class="w-5 h-5 mr-2" />
-                      {{ selectedRecipe?.prep_time }}
+                      <UsersIcon class="w-5 h-5 mr-2" />
+                      {{ selectedTribe?.population }}
                     </span>
                     <span class="flex items-center">
-                      <UsersIcon class="w-5 h-5 mr-2" />
-                      {{ selectedRecipe?.servings }} servings
+                      <MapPinIcon class="w-5 h-5 mr-2" />
+                      {{ selectedTribe?.region }} region
                     </span>
-                    <span :style="{ color: getCategoryColor(selectedRecipe?.category_id).text,
-backgroundColor: getCategoryColor(selectedRecipe?.category_id).bg }" class="px-3 py-1 rounded-full text-sm font-medium">
-                      {{ getCategoryName(selectedRecipe?.category_id) }}
+                    <span :style="{ color: getCategoryColor(selectedTribe?.category_id).text,
+                        backgroundColor: getCategoryColor(selectedTribe?.category_id).bg }" class="px-3 py-1 rounded-full text-sm font-medium">
+                      {{ getCategoryName(selectedTribe?.category_id) }}
                     </span>
                   </div>
                   <div class="space-y-4 max-h-[calc(100vh-24rem)] overflow-y-auto pr-4 custom-scrollbar">
                     <div>
                       <h3 class="text-xl font-semibold mb-2">Description</h3>
-                      <p class="text-gray-700">{{ selectedRecipe?.description }}</p>
+                      <p class="text-gray-700">{{ selectedTribe?.description }}</p>
                     </div>
                     <div>
-                      <h3 class="text-xl font-semibold mb-2">Ingredients</h3>
+                      <h3 class="text-xl font-semibold mb-2">Language</h3>
                       <ul class="list-disc list-inside text-gray-700">
-                        <li v-for="ingredient in selectedRecipe?.ingredients.split('\n')" :key="ingredient" class="mb-2 break-words">
-                          {{ ingredient.trim() }}
+                        <li v-for="language in selectedTribe?.language.split('\n')" :key="language" class="mb-2 break-words">
+                          {{ language.trim() }}
                         </li>
                       </ul>
                     </div>
                     <div>
-                      <h3 class="text-xl font-semibold mb-2">Procedure</h3>
+                      <h3 class="text-xl font-semibold mb-2">Cultural Practices</h3>
                       <ol class="list-decimal list-inside text-gray-700">
-                        <li v-for="(step, index) in selectedRecipe?.procedure.split('\n')" :key="index" class="mb-2 break-words">
+                        <li v-for="(step, index) in selectedTribe?.cultural_practices.split('\n')" :key="index" class="mb-2 break-words">
                           {{ step.trim() }}
                         </li>
                       </ol>
@@ -338,7 +338,7 @@ backgroundColor: getCategoryColor(selectedRecipe?.category_id).bg }" class="px-3
                     </div>
                   </div>
                   <DialogTitle as="h3" class="text-lg font-medium leading-6 text-gray-900 text-center mb-2">
-                    Recipe {{ creativeAlertConfig.action }} Successfully!
+                    Tribe {{ creativeAlertConfig.action }} Successfully!
                   </DialogTitle>
                   <p class="text-sm text-gray-500 text-center mb-4">
                     {{ creativeAlertConfig.message }}
@@ -382,22 +382,24 @@ import {
   FireIcon,
   TagIcon,
   CheckIcon,
+  FlagIcon,
+  MapPinIcon
 } from '@heroicons/vue/24/solid';
 
 const props = defineProps({
-  chefs: Array,
+  staffs: Array,
   roles: Array,
   users: Array,
   stats: {
     type: Array,
     default: () => ({
-      total_main_courses: 0,
-      total_appetizers: 0,
-      total_desserts: 0,
-      total_beverages: 0,
+      total_luzon_tribes: 0,
+      total_visayan_tribes: 0,
+      total_mindanao_tribes: 0,
+      total_moro_tribes: 0,
     }),
   },
-  recipes: {
+  tribes: {
     type: Array,
     default: () => []
   },
@@ -412,28 +414,28 @@ const props = defineProps({
 });
 
 // Reactive data
-const recipes = ref(props.recipes);
+const tribes = ref(props.tribes);
 const categories = ref(props.categories);
 const roles = ref(props.roles || []);
-const totalRecipes = ref(0);
-const totalRecipesCreated = ref(0);
+const totalTribes = ref(0);
+const totalTribesCreated = ref(0);
 const totalCategories = ref(0);
-const recentRecipes = ref([]);
+const recentTribes = ref([]);
 
-const showRecipeModal = ref(false);
+const showTribeModal = ref(false);
 const showConfirmModal = ref(false);
 const showCreativeAlert = ref(false);
-const editingRecipe = ref(null);
-const selectedRecipe = ref(null);
+const editingTribe = ref(null);
+const selectedTribe = ref(null);
 
-const recipeForm = ref({
-  recipe_name: '',
+const tribeForm = ref({
+  tribe_name: '',
   description: '',
-  ingredients: '',
-  procedure: '',
+  language: '',
+  cultural_practices: '',
   category_id: '',
-  prep_time: '',
-  servings: '',
+  population: '',
+  region: '',
   image: null,
 });
 
@@ -451,15 +453,15 @@ const creativeAlertConfig = ref({
 // Navigation items
 const navItems = [
   { name: 'Dashboard', href: '#dashboard', icon: HomeIcon },
-  { name: 'Recipes', href: '#recipes', icon: BookOpenIcon },
+  { name: 'Tribes', href: '#tribes', icon: FlagIcon },
 ];
 
 // Computed properties
 const dashboardStats = computed(() => [
-  { title: 'Total Main Courses', value: props.stats[0].total_main_courses, icon: BookOpenIcon },
-  { title: 'Total Appetizers', value: props.stats[0].total_appetizers, icon: FireIcon },
-  { title: 'Total Desserts', value: props.stats[0].total_desserts, icon: TagIcon },
-  { title: 'Total Beverages', value: props.stats[0].total_beverages, icon: BookmarkIcon },
+  { title: 'Total Luzon Tribes', value: props.stats[0].total_luzon_tribes, icon: FlagIcon },
+  { title: 'Total Visayan Tribes', value: props.stats[0].total_visayan_tribes, icon: FlagIcon },
+  { title: 'Total Mindanao Tribes', value: props.stats[0].total_mindanao_tribes, icon: FlagIcon },
+  { title: 'Total Moro Tribes', value: props.stats[0].total_moro_tribes, icon: FlagIcon },
 ]);
 
 // Methods
@@ -494,28 +496,28 @@ const getCategoryColor = (categoryId) => {
   return { text: '#000000', bg: '#FFFFFF' };
 };
 
-const openRecipeModal = (recipe = null) => {
-  editingRecipe.value = recipe;
-  if (recipe) {
-    recipeForm.value = { ...recipe };
+const openTribeModal = (tribe = null) => {
+  editingTribe.value = tribe;
+  if (tribe) {
+    tribeForm.value = { ...tribe };
   } else {
-    recipeForm.value = {
-      recipe_name: '',
+    tribeForm.value = {
+      tribe_name: '',
       description: '',
-      ingredients: '',
-      procedure: '',
+      language: '',
+      cultural_practices: '',
       category_id: '',
-      prep_time: '',
-      servings: '',
+      population: '',
+      region: '',
       image: null,
     };
   }
-  showRecipeModal.value = true;
+  showTribeModal.value = true;
 };
 
-const closeRecipeModal = () => {
-  showRecipeModal.value = false;
-  editingRecipe.value = null;
+const closeTribeModal = () => {
+  showTribeModal.value = false;
+  editingTribe.value = null;
 };
 
 const closeConfirmModal = () => {
@@ -542,109 +544,109 @@ const showAlert = (message, type) => {
   };
 };
 
-const confirmDeleteRecipe = (recipeId) => {
+const confirmDeleteTribe = (tribeId) => {
   showConfirmModal.value = true;
   confirmModalConfig.value = {
-    title: 'Delete Recipe',
-    message: 'Are you sure you want to delete this recipe?',
+    title: 'Delete Tribe',
+    message: 'Are you sure you want to delete this tribe?',
     onConfirm: () => {
-      router.delete(route("chef.deleteRecipe", { recipe: recipeId }), {
+      router.delete(route("staff.deleteTribe", { tribes: tribeId }), {
         onSuccess: () => {
-          recipes.value = recipes.value.filter((recipe) => recipe.id !== recipeId);
+          tribes.value = tribes.value.filter((tribe) => tribe.id !== tribeId);
           showCreativeAlert.value = true;
           creativeAlertConfig.value = {
             action: 'Deleted',
-            message: 'Your recipe has been removed from your collection.'
+            message: 'Your tribe has been removed from your collection.'
           };
         },
         onError: (error) => {
-          console.error("Error deleting recipe:", error);
-          showAlert("Error: Unable to delete the recipe.", "error");
+          console.error("Error deleting tribe:", error);
+          showAlert("Error: Unable to delete the tribe.", "error");
         },
       });
     },
   };
 };
 
-const confirmSubmitRecipe = () => {
-  submitRecipe();
+const confirmSubmitTribe = () => {
+  submitTribe();
 };
 
-const submitRecipe = () => {
-  if (editingRecipe.value) {
-    // PUT request to update the recipe
-    router.put(route("chef.updateRecipe", { recipe: recipeForm.value.id }), recipeForm.value, {
+const submitTribe = () => {
+  if (editingTribe.value) {
+    // PUT request to update the tribe
+    router.put(route("staff.updateTribe", { tribes: tribeForm.value.id }), tribeForm.value, {
       preserveState: true,
       preserveScroll: true,
       onSuccess: () => {
-        // Update the recipe in the recipes array directly
-        const recipeIndex = recipes.value.findIndex((r) => r.id === recipeForm.value.id);
-        if (recipeIndex > -1) {
-          recipes.value[recipeIndex] = { ...recipeForm.value };  // Replace the old recipe with the updated one
+        // Update the tribe in the tribes array directly
+        const tribeIndex = tribes.value.findIndex((r) => r.id === tribeForm.value.id);
+        if (tribeIndex > -1) {
+          tribes.value[tribeIndex] = { ...tribeForm.value };  // Replace the old tribe with the updated one
         }
-        closeRecipeModal();
+        closeTribeModal();
         showCreativeAlert.value = true;
         creativeAlertConfig.value = {
           action: 'Edited',
-          message: 'Your recipe has been updated from your collection.'
+          message: 'Your tribe has been updated from your collection.'
         };
       },
       onError: (errors) => {
-        showAlert("There was an error updating the recipe: " + Object.values(errors).join(", "), "error");
+        showAlert("There was an error updating the tribe: " + Object.values(errors).join(", "), "error");
       },
     });
   } else {
-    router.post(route("chef.storeRecipe"), recipeForm.value, {
+    router.post(route("staff.storeTribe"), tribeForm.value, {
       preserveState: true,
       preserveScroll: true,
       onSuccess: () => {
-        closeRecipeModal();
-        fetchDashboardData(); // Refresh the recipes list
+        closeTribeModal();
+        fetchDashboardData(); // Refresh the tribes list
         showCreativeAlert.value = true;
         creativeAlertConfig.value = {
           action: 'Added',
-          message: 'Your new recipe has been added to your collection.'
+          message: 'Your new tribe has been added to your collection.'
         };
       },
       onError: (errors) => {
-        showAlert("There was an error adding the recipe: " + Object.values(errors).join(", "), "error");
+        showAlert("There was an error adding the tribe: " + Object.values(errors).join(", "), "error");
       },
     });
   }
 };
-const viewRecipeDetails = (recipe) => {
-  selectedRecipe.value = recipe;
+const viewTribeDetails = (tribe) => {
+  selectedTribe.value = tribe;
 };
 
-const closeRecipeDetails = () => {
-  selectedRecipe.value = null;
+const closeTribeDetails = () => {
+  selectedTribe.value = null;
 };
 
 const closeCreativeAlert = () => {
   showCreativeAlert.value = false;
 };
 
-const updateRecipes = (newRecipes) => {
-  recipes.value = newRecipes;
-  recentRecipes.value = newRecipes.slice(0, 5);
+const updateTribes = (newTribes) => {
+  tribes.value = newTribes;
+  recentTribes.value = newTribes.slice(0, 5);
 };
 
 const updateDashboardStats = () => {
-  totalRecipes.value = recipes.value.length;
-  totalRecipesCreated.value = recipes.value.length;
+  totalTribes.value = tribes.value.length;
+  totalTribesCreated.value = tribes.value.length;
   totalCategories.value = categories.value.length;
 };
 
 const fetchDashboardData = async () => {
   try {
-    const response = await fetch(route('chef.getDashboardStats'));
+    const response = await fetch(route('staff.getDashboardStats'));
     const data = await response.json();
-    totalRecipes.value = data.totalRecipes;
-    totalRecipesCreated.value = data.totalRecipesCreated;
+    totalTribes.value = data.totalTribes;
+    totalTribesCreated.value = data.totalTribesCreated;
     totalCategories.value = data.totalCategories;
-    recentRecipes.value = data.recentRecipes;
+    recentTribes.value = data.recentTribes;
     categories.value = data.categories;
-    recipes.value = data.recipes;
+    tribes.value = data.tribes;
     updateDashboardStats();
   } catch (error) {
     console.error('Error fetching dashboard stats:', error);

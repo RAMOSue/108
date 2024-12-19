@@ -66,8 +66,8 @@ class RegisteredUserController extends Controller
         switch ($user->role_id) {
             case 1: // Admin
                 return redirect()->route('admin');
-            case 2: // Chef
-                return redirect()->route('chef');
+            case 2: // Staff
+                return redirect()->route('staff');
             case 3: // Viewer/User
             default:
                 return redirect()->route('user');

@@ -11,14 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('recipes', function (Blueprint $table) {
+        Schema::create('tribes', function (Blueprint $table) { //recipes
             $table->id();  // Auto-incrementing ID column
-            $table->string('recipe_name');  // Title of the recipe
-            $table->text('description');
-            $table->text('ingredients');
-            $table->text('procedure');
-            $table->text('prep_time');
-            $table->integer('servings');
+            $table->string('tribe_name');  // Title of the recipe
+            $table->text('description'); //description
+            $table->text('language'); // ingredients
+            $table->text('cultural_practices'); //procedure
+            $table->text('population'); // prep_time
+            $table->text('region'); // servings
             $table->text('url_image')->nullable();  // Make 'url_image' nullable
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');  // Foreign key for user (creator)
             $table->foreignId('category_id')->constrained('categories')->onDelete('cascade');  // Foreign key for category
@@ -31,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('recipes');
+        Schema::dropIfExists('tribes');
     }
 };

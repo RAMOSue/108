@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Notifications\Notifiable;
 
-class Recipe extends Model
+class Tribe extends Model
 {
     use HasFactory, Notifiable;
 
@@ -17,19 +17,19 @@ class Recipe extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'recipe_name',
+        'tribe_name',
         'description',
-        'ingredients',
-        'procedure',
-        'prep_time',
-        'servings',
+        'language',
+        'cultural_practices',
+        'population',
+        'region',
         'url_image',
         'category_id',
         'user_id',
     ];
 
     /**
-     * Get the user that owns the recipe.
+     * Get the user that owns the tribe.
      */
     public function user()
     {
@@ -37,7 +37,7 @@ class Recipe extends Model
     }
 
     /**
-     * Get the category that the recipe belongs to.
+     * Get the category that the tribe belongs to.
      */
     public function category()
     {
@@ -45,7 +45,7 @@ class Recipe extends Model
     }
 
     /**
-     * Delete the recipe's image from storage.
+     * Delete the tribe's image from storage.
      */
     public function deleteImage()
     {
@@ -55,7 +55,7 @@ class Recipe extends Model
     }
 
     /**
-     * Get the recipe's image URL.
+     * Get the tribe's image URL.
      *
      * @return string
      */
@@ -67,7 +67,7 @@ class Recipe extends Model
     }
 
     /**
-     * Scope a query to only include recipes of a given category.
+     * Scope a query to only include tribes of a given category.
      *
      * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @param  int  $categoryId
@@ -79,7 +79,7 @@ class Recipe extends Model
     }
 
     /**
-     * Scope a query to only include recipes of the authenticated user.
+     * Scope a query to only include tribes of the authenticated user.
      *
      * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @return \Illuminate\Database\Eloquent\Builder
@@ -90,7 +90,7 @@ class Recipe extends Model
     }
 
     /**
-     * Get the recipe's preparation time in a human-readable format.
+     * Get the tribe's preparation time in a human-readable format.
      *
      * @return string
      */

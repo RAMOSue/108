@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
-use App\Models\Recipe;
+use App\Models\Tribe;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,13 +17,13 @@ class UserController extends Controller
     {
         $users = User::with('role')->get();
         $roles = DB::table('roles')->get();
-        $recipes = DB::table('recipes')->get();
+        $tribes = DB::table('tribes')->get();
         $categories = DB::table('categories')->get();
 
         return Inertia::render('User', [
             'users' => $users,
             'roles' => $roles,
-            'recipes' => $recipes,
+            'tribes' => $tribes,
             'categories' => $categories,
         ]);
     }

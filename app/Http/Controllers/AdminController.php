@@ -12,17 +12,35 @@ class AdminController extends Controller
     /*-----------------------------------
      | Dashboard and Overview Functions |
      -----------------------------------*/
-    
     /**
-     * Display the admin dashboard with recipe statistics and user-role data.
+     * Display the admin dashboard with tribes statistics and user-role data.
      */
-    public function dashboard()
+    public function dashboard(Request $request)
     {
+
+        // Fetch filter parameters
+    $action = $request->input('action');       // e.g., INSERT, UPDATE, DELETE
+    $tableName = $request->input('table_name'); // e.g., users, tribes, categories
+
+    // Base query for logs
+    $logsQuery = DB::table('activity_logs_summary');
+
+    // Apply filters dynamically
+    if ($action) {
+        $logsQuery->where('action', $action);
+    }
+    if ($tableName) {
+        $logsQuery->where('table_name', $tableName);
+    }
+
+    // Fetch the filtered logs
+    $logs = $logsQuery->orderBy('created_at', 'desc')->get();
     // Fetch data from the STATISTICS view
     $statistics = DB::select('SELECT * FROM STATISTICS');
-    $recipes = DB::select('SELECT * FROM get_recipes()');
-    $recentRecipes = DB::select('
-        SELECT users.id AS user_id, get_recent_recipe(users.id::bigint) AS recent_recipe 
+    // $logs = DB::select('SELECT * FROM activity_logs_summary');
+    $tribes = DB::select('SELECT * FROM get_tribes()');
+    $recentTribes = DB::select('
+        SELECT users.id AS user_id, get_recent_tribes(users.id::bigint) AS recent_tribe 
         FROM users 
         WHERE users.role_id = 2
     ');
@@ -30,30 +48,34 @@ class AdminController extends Controller
     // Fetch user and role information
     $users = User::with('role')->get();
     $roles = DB::table('roles')->get();
+    
 
     // Pass all the combined data to the Admin view
     return Inertia::render('Admin', [
         'statistics' => $statistics,
         'users' => $users,
         'roles' => $roles,
-        'recipes' => $recipes,
-        'recentRecipes' => $recentRecipes,
+        'tribes' => $tribes,
+        'recentTribes' => $recentTribes,
+        'logs' => $logs
     ]);
     }
 
 
-    public function deleteRecipe($id)
+    public function deleteTribes($id)
     {
-        \Log::info("Deleting recipe with ID: $id"); // Log the ID
+        DB::statement("SET app.current_user_id = " . auth()->id());
+
+        \Log::info(message: "Deleting tribe with ID: $id"); // Log the ID
         
-        $recipe = DB::table('recipes')->where('id', $id)->first();
+        $tribe = DB::table('tribes')->where('id', $id)->first();
         
-        if ($recipe) {
-            DB::table('recipes')->where('id', $id)->delete();
-            return redirect()->route('admin')->with('success', 'Recipe deleted successfully.');
+        if ($tribe) {
+            DB::table('tribes')->where('id', $id)->delete();
+            return redirect()->route('admin')->with('success', 'Tribe deleted successfully.');
         }
         
-        return redirect()->route('admin')->with('error', 'Recipe not found.');
+        return redirect()->route('admin')->with('error', 'Tribe not found.');
     }
     
     
@@ -77,8 +99,10 @@ class AdminController extends Controller
      * Update a user's role.
      */
     
-    public function updateUserRole(Request $request, $userId)
+     public function updateRole(Request $request, $userId)
     {
+        DB::statement("SET app.current_user_id = " . auth()->id());
+
         $user = DB::table('users')->where('id', $userId)->first();
 
         if (!$user) {
@@ -100,62 +124,79 @@ class AdminController extends Controller
         return back()->with('message', 'User role updated successfully!');
     }
 
+
     /**
      * Delete a user from the system.
      */
 
-    public function deleteUser(User $user)
-    {
-        if ($user->role_id === 1) {
-            return redirect()->back()->with('error', 'Admin users cannot be deleted.');
-        }
+     public function deleteUser($id)
+     {
+         // Find the user by ID using DB facade
+         DB::statement("SET app.current_user_id = " . auth()->id());
 
-        $user->delete();
-
-        return redirect()->back()->with('message', 'User deleted successfully.');
-    }
+         $user = DB::table('users')->where('id', $id)->first();
+     
+         // Check if user exists
+         if (!$user) {
+             return redirect()->back()->with('error', 'User not found.');
+         }
+     
+         // Prevent deleting admin users
+         if ($user->role_id === 1) {
+             return redirect()->back()->with('error', 'Admin users cannot be deleted.');
+         }
+     
+         // Delete the user from the database
+         DB::table('users')->where('id', $id)->delete();
+     
+         return redirect()->back()->with('message', 'User deleted successfully.');
+     }
     
     /**
      * Add a new user to the system.
      */
     public function addUser(Request $request)
-    {
-        // Validate the incoming request data, including the dynamic role_id
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:8',
-            'role_id' => 'required|exists:roles,id',  // Ensure role_id exists in roles table
-        ]);
+{
+    DB::statement("SET app.current_user_id = " . auth()->id());
 
-        // Create a new user with the provided role_id
-        User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => bcrypt($validated['password']),
-            'role_id' => $validated['role_id'],  // Set role dynamically based on the selected value
-        ]);
+    // Validate the incoming request data, including the dynamic role_id
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|unique:users,email',
+        'password' => 'required|string|min:8',
+        'role_id' => 'required|exists:roles,id',  // Ensure role_id exists in roles table
+    ]);
 
-        return back()->with('message', 'User added successfully with the selected role!');
-    }
+    // Insert the new user directly into the users table
+    DB::table('users')->insert([
+        'name' => $validated['name'],
+        'email' => $validated['email'],
+        'password' => bcrypt($validated['password']),
+        'role_id' => $validated['role_id'],  // Set role dynamically based on the selected value
+        'created_at' => now(),  // Set the created_at timestamp
+        'updated_at' => now(),  // Set the updated_at timestamp
+    ]);
+
+    return back()->with('message', 'User added successfully with the selected role!');
+}
 
     /**
-     * Get recent recipes created by a specific user.
+     * Get recent tribes created by a specific user.
      */
 
-    public function getRecentUserRecipes(Request $request)
+    public function getRecentUserTribes(Request $request)
     {
-        $recipes = DB::select('SELECT * FROM get_recent_user_recipes(?, ?)', [$request->user_email, $request->limit]);
+        $tribes = DB::select('SELECT * FROM get_recent_user_tribes(?, ?)', [$request->user_email, $request->limit]);
         
-        return response()->json(['recipes' => $recipes]);
+        return response()->json(['tribes' => $tribes]);
     }
     
        /**
-     * Refresh the materialized view for recipe statistics.
+     * Refresh the materialized view for tribe statistics.
      */
     public function refreshStatistics()
     {
-        DB::statement('REFRESH MATERIALIZED VIEW recipe_statistics');
+        DB::statement('REFRESH MATERIALIZED VIEW activity_logs_summary');
         
         return redirect()->back()->with('message', 'Statistics refreshed successfully');
     }

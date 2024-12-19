@@ -37,19 +37,19 @@
                                         :href="route('dashboard')"
                                         :active="route().current('dashboard')"
                                     >
-                                        Recipe Book
+                                        Tribes
                                     </NavLink>
                                 <NavLink v-if="$page.props.auth.user.role_id === 1" :href="route('admin')"
                                         :active="route().current('admin')">
-                                        Recipe Book Management
+                                        Tribes Management
                                     </NavLink>
-                                    <NavLink v-if="$page.props.auth.user.role_id === 2" :href="route('chef')"
-                                        :active="route().current('chef')">
-                                        Chef Management
+                                    <NavLink v-if="$page.props.auth.user.role_id === 2" :href="route('staff')"
+                                        :active="route().current('staff')">
+                                        Staff Management
                                     </NavLink>
                                     <NavLink v-if="$page.props.auth.user.role_id === 3 || $page.props.auth.user.role_id === 1 ||  $page.props.auth.user.role_id === 2" :href="route('user')"
                                         :active="route().current('user')">
-                                        Browse Recipes
+                                        Explore Tribes
                                     </NavLink>
                                     
                                 </div>
@@ -161,19 +161,19 @@
                                         :href="route('dashboard')"
                                         :active="route().current('dashboard')"
                                     >
-                                        Recipe Book
+                                        Tribes
                             </ResponsiveNavLink>
                             <ResponsiveNavLink v-if="$page.props.auth.user.role_id === 1" :href="route('admin')"
                                         :active="route().current('admin')">
-                                        Recipe Book Manager
+                                        Tribes Manager
                             </ResponsiveNavLink>
-                            <ResponsiveNavLink v-if="$page.props.auth.user.role_id === 2" :href="route('chef')"
-                                        :active="route().current('chef')">
-                                        Chef Management
+                            <ResponsiveNavLink v-if="$page.props.auth.user.role_id === 2" :href="route('staff')"
+                                        :active="route().current('staff')">
+                                        Staff Management
                             </ResponsiveNavLink>
                             <ResponsiveNavLink v-if="$page.props.auth.user.role_id === 3 || $page.props.auth.user.role_id === 2 || $page.props.auth.user.role_id === 1" :href="route('user')"
                                         :active="route().current('user')">
-                                        Browse Recipes
+                                        Explore Tribes
                             </ResponsiveNavLink>
                         </div>
 

@@ -66,14 +66,14 @@ class User extends Authenticatable
     }
 
     /**
-     * Define the relationship to the Recipe model through the Category model.
+     * Define the relationship to the Tribe model through the Category model.
      */
-    public function recipes()
+    public function tribes()
     {
         return $this->hasManyThrough(
-            Recipe::class,
+            Tribe::class,
             Category::class,
-            'category_id', // Foreign key on recipes table
+            'category_id', // Foreign key on tribes table
             'id', // Local key on users table
             'id' // Local key on categories table
         );

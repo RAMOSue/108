@@ -19,10 +19,10 @@ class Category extends Model
     ];
 
     /**
-     * Get the recipes for the category.
+     * Get the tribes for the category.
      */
-    public function recipes()
+    public function tribes()
     {
-        return $this->hasMany(Recipe::class);
+        return $this->hasMany(Tribe::class);
     }
 }
