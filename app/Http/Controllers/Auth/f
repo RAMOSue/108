@@ -1,0 +1,388 @@
+-- Viewer Role
+CREATE ROLE viewer WITH LOGIN PASSWORD 'viewer';
+GRANT CONNECT ON DATABASE "RecipeBook" TO viewer;
+
+-- Grant SELECT permission on specific tables
+GRANT SELECT 
+    ON public.roles, 
+       public.users, 
+       public.categories, 
+       public.recipes 
+    TO viewer;
+
+-- Chef Role	
+CREATE ROLE chef WITH LOGIN PASSWORD 'chef';
+GRANT CONNECT ON DATABASE "RecipeBook" TO chef;
+
+-- Grant SELECT, INSERT, and UPDATE permissions on specific tables
+GRANT SELECT ON 
+    public.roles, 
+    public.users, 
+    public.categories, 
+    public.recipes
+TO chef;
+
+GRANT INSERT, UPDATE, DELETE ON 
+    public.recipes
+TO chef;
+
+-- Admin Role
+CREATE ROLE admin WITH LOGIN PASSWORD 'admin';
+GRANT CONNECT ON DATABASE "RecipeBook" TO admin;
+
+-- Grant all permissions, including GRANT OPTION
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO admin;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO admin;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO admin;
+
+
+--Triggers on all tables if changes are made
+CREATE OR REPLACE TRIGGER recipe_changes
+AFTER INSERT OR UPDATE OR DELETE ON recipes
+FOR EACH ROW 
+EXECUTE FUNCTION log_recipes_changes();
+
+CREATE OR REPLACE TRIGGER users_changes
+AFTER INSERT OR UPDATE OR DELETE ON users 
+FOR EACH ROW 
+EXECUTE FUNCTION log_user_changes();
+
+
+--Functions for logging actions
+			CREATE OR REPLACE FUNCTION log_recipes_changes()
+			RETURNS TRIGGER AS $$
+			BEGIN
+				IF TG_OP = 'DELETE' THEN
+					INSERT INTO activity_logs (user_id, table_name, action, created_at, role_user)
+					VALUES (OLD.id, TG_TABLE_NAME, TG_OP, NOW(), CURRENT_USER);
+				ELSE
+					INSERT INTO activity_logs (user_id, table_name, action, created_at, role_user)
+					VALUES (NEW.id, TG_TABLE_NAME, TG_OP, NOW(), CURRENT_USER);
+				END IF;
+				RETURN NEW;
+			END;
+			$$ LANGUAGE plpgsql;
+
+
+			CREATE OR REPLACE FUNCTION log_user_changes()
+			RETURNS TRIGGER AS $$
+			BEGIN
+			  IF TG_OP = 'DELETE' THEN
+				  INSERT INTO users_logs (user_id, table_name, action, created_at, role_user)
+				  VALUES (OLD.id, TG_TABLE_NAME, TG_OP, NOW(), CURRENT_USER);
+			  ELSE
+				  INSERT INTO users_logs (user_id, table_name, action, created_at, role_user)
+				  VALUES (NEW.id, TG_TABLE_NAME, TG_OP, NOW(), CURRENT_USER);
+			  END IF;
+			  RETURN NEW;  
+			END;
+			$$ LANGUAGE plpgsql;
+			
+--functions utilized in users interface
+--multiple functions are stored here
+
+	-- VIEW FOR ADMIN STATS
+	CREATE VIEW statistics AS
+SELECT 
+    (SELECT COUNT(*) FROM users) AS total_users,
+    (SELECT COUNT(*) FROM recipes) AS total_recipes,
+    (SELECT COUNT(*) FROM users WHERE role_id = 2) AS total_chefs,
+    (SELECT COUNT(*) FROM users WHERE role_id = 1) AS total_admins;
+	
+	-- TABLE VALUED FUNCTION
+CREATE OR REPLACE FUNCTION get_recipes()
+RETURNS TABLE (
+    recipe_id BIGINT,
+    recipe_name VARCHAR,
+    chef_name VARCHAR,
+    category_name VARCHAR,
+    created_at TIMESTAMP
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        r.id AS recipe_id,
+        r.recipe_name,
+        u.name AS chef_name,
+        c.category_name,
+        r.created_at
+    FROM recipes r
+    JOIN users u ON r.user_id = u.id
+    JOIN categories c ON r.category_id = c.id;
+END;
+$$ LANGUAGE plpgsql;
+SELECT * FROM get_recipes()
+
+-- SCALAR FUNCTION FOR RECENT RECIPES
+CREATE OR REPLACE FUNCTION get_recent_recipe(user_id_param bigint)
+RETURNS text AS $$
+DECLARE
+    recent_recipe text;
+BEGIN
+    SELECT recipe_name
+    INTO recent_recipe
+    FROM recipes
+    WHERE recipes.user_id = user_id_param
+    ORDER BY created_at DESC
+    LIMIT 1;
+    
+    RETURN recent_recipe;
+END;
+$$ LANGUAGE plpgsql;
+
+SELECT * FROM get_recent_recipe(9)
+SELECT * FROM users
+	-- VIEW FOR CHEF STATS
+CREATE VIEW chef_stat AS
+SELECT 
+	(SELECT COUNT(*) FROM recipes WHERE category_id = 1) AS total_main_courses,
+    (SELECT COUNT(*) FROM recipes WHERE category_id = 2) AS total_appetizers,
+    (SELECT COUNT(*) FROM recipes WHERE category_id = 3) AS total_desserts,
+    (SELECT COUNT(*) FROM recipes WHERE category_id = 4) AS total_beverages;
+    
+	DROP VIEW chef_stat
+	SELECT * FROM categories
+	SELECT * FROM chef_stat
+	SELECT * FROM RECIPES
+	SELECT * FROM USERS
+	
+	
+-- VIEW FOR EVERY RECIPE ADDED BY CHEF BASED ON CATEGORIES
+CREATE OR REPLACE VIEW Chef_Recipe AS
+SELECT 
+    A.name AS user_name,
+    A.email AS user_email,
+    B.recipe_name,
+    B.description,
+    C.category_name,
+    B.created_at AS recipe_created_at
+FROM 
+    users A
+JOIN 
+    recipes B ON B.user_id = A.id
+JOIN 
+    categories C ON B.category_id = C.id
+ORDER BY 
+    A.name, B.recipe_created_at DESC;
+
+-- MATERIALIZED VIEW TO TRACK THE USERS RECIPE ACTIVITIES
+CREATE MATERIALIZED VIEW detailed_recipe_insights AS
+SELECT 
+    u.name AS user_name,
+    u.email AS user_email,
+    r.recipe_name,
+    r.description,
+    r.prep_time,
+    c.category_name,
+    al.action AS last_action,
+    al.created_at AS action_timestamp
+FROM 
+    users u
+JOIN 
+    recipes r ON r.user_id = u.id
+JOIN 
+    categories c ON r.category_id = c.id
+LEFT JOIN 
+    activity_logs al ON al.user_id = u.id AND al.table_name = 'recipes'
+ORDER BY 
+    al.created_at DESC;
+REFRESH MATERIALIZED VIEW detailed_recipe_insights;
+
+-- INDEXES IN MAJOR TABLES
+CREATE INDEX idx_recipes_user_id ON recipes (user_id);
+CREATE INDEX idx_recipes_category_id ON recipes (category_id);
+
+-- SCALAR FUNCTION TO GET THE NUMBER OF RECIPES CREATED BY A SPECIFIC CHEF
+CREATE OR REPLACE FUNCTION get_recipe_count_by_user(user_id BIGINT)
+RETURNS INTEGER AS $$
+DECLARE
+    recipe_count INTEGER;
+BEGIN
+    -- Get the count of recipes for the given user
+    SELECT COUNT(*) INTO recipe_count
+    FROM recipes
+    WHERE user_id = user_id;
+    
+    -- Return the result
+    RETURN recipe_count;
+END;
+$$ LANGUAGE plpgsql;
+SELECT get_recipe_count_by_user(1);
+
+
+-- TABLE-VALUED FUNCTION TO GET ALL RECIPES FOR A SPECIFIC CATEGORY
+CREATE OR REPLACE FUNCTION get_recipes_by_category(category_id BIGINT)
+RETURNS TABLE (
+    id BIGINT,
+    recipe_name VARCHAR,
+    description TEXT,
+    ingredients TEXT,
+    procedure TEXT,
+    prep_time TEXT,
+    servings INTEGER,
+    user_id BIGINT,
+    category_name VARCHAR
+) AS $$
+BEGIN
+    -- RETURN ALL RECIPES FOR THE SPECIFIED CATEGORY, JOINED WITH CATEGORY TABLE TO GET CATEGORY NAME
+    RETURN QUERY
+    SELECT 
+        r.id,
+        r.recipe_name,
+        r.description,
+        r.ingredients,
+        r.procedure,
+        r.prep_time,
+        r.servings,
+        r.user_id,
+        c.category_name
+    FROM 
+        recipes r
+    JOIN 
+        categories c ON r.category_id = c.id
+    WHERE 
+        r.category_id = category_id;
+END;
+$$ LANGUAGE plpgsql;
+SELECT * FROM get_recipes_by_category(2);
+
+------------- FUNCTIONALITY IN ADMIN --------------------
+
+-- Admin function to add a new user
+CREATE OR REPLACE FUNCTION add_new_user(
+    p_name VARCHAR,
+    p_email VARCHAR,
+    p_password VARCHAR,
+    p_role_user VARCHAR
+) RETURNS VOID AS $$
+DECLARE
+    v_role_id BIGINT;
+BEGIN
+    -- Get the role_id based on the provided role_user
+    SELECT id INTO v_role_id
+    FROM roles
+    WHERE role_user = p_role_user
+    LIMIT 1;
+
+    -- Check if the role exists
+    IF v_role_id IS NULL THEN
+        RAISE EXCEPTION 'Role "%" does not exist.', p_role_user;
+    END IF;
+
+    -- Insert the new user into the users table
+    INSERT INTO users (name, email, password, role_id, created_at, updated_at)
+    VALUES (p_name, p_email, p_password, v_role_id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+END;
+$$ LANGUAGE plpgsql;
+
+
+DROP FUNCTION add_new_user
+
+-- function to delete user or chef (excluding admins)
+CREATE OR REPLACE FUNCTION delete_user_or_chef(user_id INT) RETURNS VOID AS $$
+BEGIN
+    -- Check if the user to be deleted is an admin
+    IF EXISTS (SELECT 1 FROM users WHERE id = user_id AND role_user = 'admin') THEN
+        RAISE EXCEPTION 'Cannot delete another admin.';
+    END IF;
+
+    -- Proceed to delete the user or chef
+    DELETE FROM users WHERE id = user_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- function to update user role (promote or demote user or chef)
+CREATE OR REPLACE FUNCTION update_user_role(user_id INT, new_role TEXT) RETURNS VOID AS $$
+BEGIN
+    -- Check if the user being updated is an admin
+    IF EXISTS (SELECT 1 FROM users WHERE id = user_id AND role_user = 'admin') THEN
+        RAISE EXCEPTION 'Cannot edit the role of another admin.';
+    END IF;
+
+    -- Update the user's role
+    UPDATE users
+    SET role_user = new_role
+    WHERE id = user_id;
+END;
+$$ LANGUAGE plpgsql;
+
+
+------------- FUNCTIONALITY IN CHEF ---------------
+
+-- Chef function to add a new recipe
+CREATE OR REPLACE FUNCTION add_recipe(
+    p_recipe_name VARCHAR,
+    p_description TEXT,
+    p_ingredients TEXT,
+    p_procedure TEXT,
+    p_prep_time TEXT,
+    p_servings INTEGER,
+    p_category_id BIGINT,
+    p_user_id BIGINT
+) RETURNS VOID AS $$
+BEGIN
+    -- Insert a new recipe
+    INSERT INTO recipes (
+        recipe_name,
+        description,
+        ingredients,
+        procedure,
+        prep_time,
+        servings,
+        category_id,
+        user_id,
+        created_at,
+        updated_at
+    ) VALUES (
+        p_recipe_name,
+        p_description,
+        p_ingredients,
+        p_procedure,
+        p_prep_time,
+        p_servings,
+        p_category_id,
+        p_user_id,
+        CURRENT_TIMESTAMP,
+        CURRENT_TIMESTAMP
+    );
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- Chef function to edit an existing recipe
+CREATE OR REPLACE FUNCTION edit_recipe(
+    p_recipe_id BIGINT,
+    p_recipe_name VARCHAR,
+    p_description TEXT,
+    p_ingredients TEXT,
+    p_procedure TEXT,
+    p_prep_time TEXT,
+    p_servings INTEGER,
+    p_category_id BIGINT
+) RETURNS VOID AS $$
+BEGIN
+    -- Update the recipe details
+    UPDATE recipes
+    SET 
+        recipe_name = p_recipe_name,
+        description = p_description,
+        ingredients = p_ingredients,
+        procedure = p_procedure,
+        prep_time = p_prep_time,
+        servings = p_servings,
+        category_id = p_category_id,
+        updated_at = CURRENT_TIMESTAMP
+    WHERE id = p_recipe_id;
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- Chef function to delete a recipe
+CREATE OR REPLACE FUNCTION delete_recipe(
+    p_recipe_id BIGINT
+) RETURNS VOID AS $$
+BEGIN
+    -- Delete the recipe by its ID
+    DELETE FROM recipes WHERE id = p_recipe_id;
+END;
+$$ LANGUAGE plpgsql;

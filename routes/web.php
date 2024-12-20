@@ -20,16 +20,16 @@ Route::get('/', function () {
 // Routes that require authentication and setDB middleware
 Route::middleware(['auth', 'setDB'])->group(function () {
     // Dashboard route - AdminController
-    
+
     Route::get('/dashboard', function () {
         return Inertia::render('Dashboard');
     })->name('dashboard');
 
     Route::get('/user', [AdminController::class, 'users'])->name('user');
 
-     // Admin routes 
-     Route::get('/user', [AdminController::class, 'users'])->name('user');
-        Route::middleware(['auth', 'admin'])->group(function () {
+    // Admin routes 
+    Route::get('/user', [AdminController::class, 'users'])->name('user');
+    Route::middleware(['auth', 'admin'])->group(function () {
         Route::get('/admin', [AdminController::class, 'dashboard'])->name('admin');
         Route::delete('/admin/users/{user}', [AdminController::class, 'deleteUser'])->name('admin.deleteUser');
         Route::post('/admin/users/{id}', [AdminController::class, 'updateRole'])->name('admin.updateRole');
@@ -39,8 +39,8 @@ Route::middleware(['auth', 'setDB'])->group(function () {
         Route::get('/admin/activity-logs', [AdminController::class, 'getActivityLogs'])->name('admin.activityLogs');
     });
 
-     // staff routes
-     Route::middleware('staff')->group(function () {
+    // staff routes
+    Route::middleware('staff')->group(function () {
         Route::get('/staff', [StaffController::class, 'dashboard'])->name('staff');  // staff profile info
         Route::get('/staff/dashboard/stats', [StaffController::class, 'getDashboardStats'])->name('staff.getDashboardStats');
         Route::post('/staff/tribes', [StaffController::class, 'storeTribe'])->name('staff.storeTribe');
@@ -52,7 +52,7 @@ Route::middleware(['auth', 'setDB'])->group(function () {
 
     //User routes
     Route::get('/user', [UserController::class, 'users'])->name('user');
-    
+
     // Profile routes
     Route::prefix('profile')->group(function () {
         Route::get('/', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -60,6 +60,8 @@ Route::middleware(['auth', 'setDB'])->group(function () {
         Route::delete('/', [ProfileController::class, 'destroy'])->name('profile.destroy');
     });
 });
+
+
 
 // Authentication routes
 require __DIR__ . '/auth.php';

@@ -62,7 +62,7 @@ class AdminController extends Controller
     }
 
 
-    public function deleteTribes($id)
+    public function deleteTribe($id)
     {
         DB::statement("SET app.current_user_id = " . auth()->id());
 
